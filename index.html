@@ -467,22 +467,29 @@ function ddrop(e){
 }
 
 // ---- RISK LOGIC ----
+// ---- RISK LOGIC ----
 function getRiskLevel(prediction, confidence){
-  if(prediction==='Cancer'){
-    if(confidence>=70) return 'High Risk';
-    if(confidence>=40) return 'Moderate Risk';
+
+  // If Cancer detected
+  if(prediction === 'Cancer'){
+    if(confidence >= 80) return 'High Risk';
+    if(confidence >= 60) return 'Moderate Risk';
     return 'Low Risk';
-  } else {
-    const cancerProb = 100 - confidence;
-    if(cancerProb>=30) return 'High Risk';
-    if(cancerProb>=15) return 'Moderate Risk';
-    return 'Low Risk';
+  }
+
+  // If Normal detected → always positive wording
+  else{
+    if(confidence >= 90) return 'Healthy';
+    if(confidence >= 75) return 'Stable';
+    return 'Low Concern';
   }
 }
 
 function getRiskBadgeClass(riskLabel){
-  if(riskLabel==='High Risk') return 'risk-high';
-  if(riskLabel==='Moderate Risk') return 'risk-moderate';
+  if(riskLabel === 'High Risk') return 'risk-high';
+  if(riskLabel === 'Moderate Risk') return 'risk-moderate';
+
+  // Positive/normal labels use green
   return 'risk-low';
 }
 
