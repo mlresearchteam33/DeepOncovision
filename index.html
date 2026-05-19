@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,6 +22,8 @@
   --bg:#f1f5fb;--surface:#ffffff;--elevated:#eef2f9;--border:#dde3ef;--border2:#c8d1e3;
   --text:#0f172a;--muted:#64748b;--dim:#94a3b8;
   --blue-dim:rgba(59,130,246,.08);
+  --green-dim:rgba(34,197,94,.12);
+  --red-dim:rgba(239,68,68,.08);
 }
 
 body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.6;min-height:100vh}
@@ -124,23 +126,65 @@ textarea::placeholder{color:var(--dim)}
 .btn-grp .btn{flex:1}
 .btn svg{width:13px;height:13px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round;flex-shrink:0}
 
-/* PIPELINE */
+/* PIPELINE — line runs directly from bottom of circle to top of next, zero gap */
 .pipeline{display:flex;flex-direction:column}
-.ps{display:flex;align-items:flex-start;gap:0;position:relative}
-.ps-left{display:flex;flex-direction:column;align-items:center;width:40px;flex-shrink:0}
+
+/* each row: left column + body side by side */
+.ps{
+  display:flex;
+  align-items:stretch;   /* left column stretches full row height */
+  position:relative;
+}
+
+/* left column: circle stacked above connector line, both centered */
+.ps-left{
+  width:40px;
+  flex-shrink:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+/* circle — no margin so line is flush */
 .ps-node{
-  width:30px;height:30px;border-radius:50%;border:2px solid var(--border2);
-  background:var(--bg);display:flex;align-items:center;justify-content:center;
-  font-size:11px;color:var(--muted);transition:.4s ease;flex-shrink:0;z-index:1;
+  width:30px;height:30px;
+  border-radius:50%;
+  border:2px solid var(--border2);
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  z-index:2;
+  position:relative;
+  transition:.4s ease;
+  color:var(--muted);
+  margin:0;padding:0;
 }
 .ps-node svg{width:12px;height:12px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round}
 .ps-node.act{border-color:var(--blue);background:var(--blue-dim);color:var(--blue);animation:pn 1.5s infinite}
 .ps-node.done{border-color:var(--green);background:var(--green-dim);color:var(--green);animation:none}
-.ps-conn{width:2px;flex:1;min-height:28px;background:var(--border2);transition:.4s;margin:0 auto}
+
+/* connector line: flex:1 makes it fill remaining height of the row exactly */
+/* margin:0 means it starts touching the circle border immediately */
+.ps-conn{
+  width:2px;
+  flex:1;          /* fills all remaining height between this circle and next */
+  margin:0;        /* zero gap — touches circle bottom edge directly */
+  background:var(--border2);
+  transition:background .4s;
+}
 .ps-conn.filled{background:var(--green)}
-.ps-conn.flow{background:linear-gradient(180deg,var(--green),var(--blue) 60%,var(--border2));animation:fl 1s linear infinite}
-.ps-body{padding:2px 0 28px 11px;flex:1}
-.ps:last-child .ps-body{padding-bottom:0}
+.ps-conn.flow{
+  background:linear-gradient(180deg,var(--green),var(--blue) 60%,var(--border2));
+  animation:fl 1s linear infinite;
+}
+
+/* body text — align to top so it sits beside the circle */
+.ps-body{
+  padding:4px 0 20px 12px;
+  flex:1;
+  align-self:flex-start;
+}
+.ps:last-child .ps-body{padding-bottom:4px}
 .ps-title{font-size:12px;font-weight:600;color:var(--text);transition:.3s}
 .ps-title.act{color:var(--blue)}
 .ps-title.done{color:var(--green)}
@@ -225,7 +269,7 @@ textarea::placeholder{color:var(--dim)}
     <span class="brand-ver">v2.1</span>
   </div>
   <button class="theme-btn" onclick="toggleTheme()">
-    <span id="tico">☀️</span><span id="tlbl">Light</span>
+    <span id="tico">🌙</span><span id="tlbl">Dark</span>
   </button>
 </nav>
 
@@ -364,8 +408,8 @@ textarea::placeholder{color:var(--dim)}
 </div>
 
 <script>
-// ---- THEME ----
-let theme='dark';
+// ---- THEME — default light ----
+let theme='light';
 function toggleTheme(){
   theme=theme==='dark'?'light':'dark';
   document.documentElement.setAttribute('data-theme',theme);
@@ -390,8 +434,7 @@ function buildPipeline(){
       <div class="ps-left">
         <div class="ps-node" id="n${i}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:12px;height:12px">${s.icon}</svg>
-        </div>
-        ${i<STEPS.length-1?`<div class="ps-conn" id="c${i}"></div>`:''}
+        </div>${i<STEPS.length-1?`<div class="ps-conn" id="c${i}"></div>`:''}
       </div>
       <div class="ps-body">
         <div class="ps-title" id="pt${i}">${s.title}</div>
@@ -445,8 +488,6 @@ function loadF(f){
   document.getElementById('fn').textContent=f.name;
   document.getElementById('fs').textContent=(f.size/1024).toFixed(1)+' KB';
   document.getElementById('fi').classList.add('on');
-  
-  // Display preview
   const reader = new FileReader();
   reader.onload = function(e) {
     document.getElementById('previewImg').src = e.target.result;
@@ -468,47 +509,19 @@ function ddrop(e){
 
 // ---- RISK LOGIC ----
 function getRiskLevel(prediction, confidence){
-
-  // Cancer detected
-  if(prediction === 'Cancer'){
-
-    if(confidence >= 80){
-      return 'High Risk';
-    }
-
-    if(confidence >= 60){
-      return 'Moderate Risk';
-    }
-
+  if(prediction==='Cancer'){
+    if(confidence>=80)return 'High Risk';
+    if(confidence>=60)return 'Moderate Risk';
     return 'Low Risk';
-  }
-
-  // Normal detected
-  else{
-
-    if(confidence >= 90){
-      return 'Healthy';
-    }
-
-    if(confidence >= 75){
-      return 'Stable';
-    }
-
+  }else{
+    if(confidence>=90)return 'Healthy';
+    if(confidence>=75)return 'Stable';
     return 'Low Concern';
   }
 }
-
 function getRiskBadgeClass(riskLabel){
-
-  if(riskLabel === 'High Risk'){
-    return 'risk-high';
-  }
-
-  if(riskLabel === 'Moderate Risk'){
-    return 'risk-moderate';
-  }
-
-  // Healthy / Stable / Low Concern
+  if(riskLabel==='High Risk')return 'risk-high';
+  if(riskLabel==='Moderate Risk')return 'risk-moderate';
   return 'risk-low';
 }
 
@@ -531,25 +544,16 @@ async function run(){
   try{
     let d;
     try{
-      const r = await fetch(
-    'https://mtresearchteam33-deeponcovision-ai.hf.space/predict',
-    {
-        method: 'POST',
-        body: fd
-    }
-     );
+      const r=await fetch('https://mtresearchteam33-deeponcovision-ai.hf.space/predict',{method:'POST',body:fd});
       d=await r.json();
     }catch{
-      // Fallback: generate realistic test data with variation
       const baseConf=Math.floor(Math.random()*35)+55;
-      const cnnConf=baseConf+Math.floor(Math.random()*8-4); // CNN varies
+      const cnnConf=baseConf+Math.floor(Math.random()*8-4);
       const bertConf=note.trim().length>0?baseConf+Math.floor(Math.random()*10-5):0;
       const fusionConf=note.trim().length>0?Math.max(baseConf,Math.max(cnnConf,bertConf))+Math.floor(Math.random()*5-2):cnnConf;
-      
       const cnnPred=cnnConf>72?'Cancer':'Normal';
       const bertPred=note.trim().length>0?(bertConf>68?'Cancer':'Normal'):'No Clinical Note';
       const fusionPred=fusionConf>70?'Cancer':'Normal';
-      
       d={success:true,final_prediction:fusionPred,final_confidence:Math.min(99,Math.max(51,fusionConf)),
          processing_time:(Math.random()*1.5+0.8).toFixed(2),
          cnn:{prediction:cnnPred,confidence:Math.min(99,Math.max(51,cnnConf))},
@@ -570,14 +574,12 @@ async function run(){
 function showResults(d){
   const ic=d.final_prediction==='Cancer';
   const conf=d.final_confidence;
-  const risk=getRiskLevel(d.final_prediction, conf);
+  const risk=getRiskLevel(d.final_prediction,conf);
   const banner=document.getElementById('vbanner');
   banner.className='vbanner '+(ic?'cancer':'normal');
   document.getElementById('vval').textContent=d.final_prediction;
-
   const riskBadgeEl=document.getElementById('vrisk');
   riskBadgeEl.innerHTML=`<span class="risk-badge ${getRiskBadgeClass(risk)}">${risk}</span>`;
-
   document.getElementById('vsub').textContent='Multimodal Fusion Pipeline';
   document.getElementById('vpct').textContent=conf+'%';
   document.getElementById('cpct').textContent=conf+'%';
@@ -634,23 +636,18 @@ async function dlPDF(){
   const d=lastData||{success:true,final_prediction:'Cancer',final_confidence:87,processing_time:'1.24',
     cnn:{prediction:'Cancer',confidence:84},bert:{prediction:'No Clinical Note',confidence:0},
     fusion:{prediction:'Cancer',confidence:87}};
-
   const ts=new Date().toLocaleString('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
   const rid='DOV-'+Date.now().toString().slice(-8);
   const ic=d.final_prediction==='Cancer';
-  const risk=getRiskLevel(d.final_prediction, d.final_confidence);
+  const risk=getRiskLevel(d.final_prediction,d.final_confidence);
   const riskShort=risk.toUpperCase();
   const acR=ic?[220,38,38]:[22,163,74];
   const note=document.getElementById('note').value.trim();
-
   const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   const W=210,H=297,lm=18,rm=18,cw=W-lm-rm;
-
   const rgb=(r,g,b)=>doc.setTextColor(r,g,b);
   const fill=(r,g,b)=>doc.setFillColor(r,g,b);
   const draw=(r,g,b)=>doc.setDrawColor(r,g,b);
-
-  // ─── HEADER BAR ───
   fill(15,23,42);doc.rect(0,0,W,22,'F');
   doc.setFont('helvetica','bold');doc.setFontSize(14);
   rgb(255,255,255);doc.text('DEEPONCOVISION AI',lm,13);
@@ -661,10 +658,7 @@ async function dlPDF(){
   doc.text('CLINICAL ANALYSIS REPORT',W-rm,13,{align:'right'});
   doc.setFont('helvetica','normal');doc.setFontSize(7);
   doc.text('v2.1  |  '+ts,W-rm,18.5,{align:'right'});
-
   let y=30;
-
-  // ─── REPORT ID strip ───
   fill(241,245,251);doc.rect(lm,y,cw,8,'F');
   draw(209,213,219);doc.rect(lm,y,cw,8,'D');
   doc.setFont('helvetica','bold');doc.setFontSize(7.5);rgb(100,116,139);
@@ -676,112 +670,79 @@ async function dlPDF(){
   doc.setFont('helvetica','normal');rgb(15,23,42);
   doc.text(ts,lm+104,y+5.2);
   y+=13;
-
-  // ─── MEDICAL IMAGE ───
   if(uploadedImageFile){
-    const imgData = document.getElementById('previewImg').src;
+    const imgData=document.getElementById('previewImg').src;
     if(imgData){
       fill(248,250,252);doc.roundedRect(lm,y,cw,70,2,2,'F');
       draw(209,213,219);doc.roundedRect(lm,y,cw,70,2,2,'D');
-      
       doc.setFont('helvetica','bold');doc.setFontSize(7);rgb(100,116,139);
       doc.text('MEDICAL IMAGE',lm+6,y+6);
-      
-      try{
-        doc.addImage(imgData,'PNG',lm+6,y+12,cw-12,55);
-      }catch(e){
-        doc.setFont('helvetica','normal');doc.setFontSize(7);rgb(100,116,139);
-        doc.text('[Image could not be embedded]',lm+6,y+40);
-      }
+      try{doc.addImage(imgData,'PNG',lm+6,y+12,cw-12,55);}
+      catch(e){doc.setFont('helvetica','normal');doc.setFontSize(7);rgb(100,116,139);doc.text('[Image could not be embedded]',lm+6,y+40);}
       y+=76;
     }
   }
-
-  // ─── VERDICT CARD ───
   fill(...(ic?[254,242,242]:[240,253,244]));
   doc.roundedRect(lm,y,cw,32,2,2,'F');
   draw(...acR);doc.setLineWidth(.5);
   doc.roundedRect(lm,y,cw,32,2,2,'D');
   doc.setLineWidth(.2);
-
   doc.setFont('helvetica','bold');doc.setFontSize(7);rgb(100,116,139);
   doc.text('FINAL DIAGNOSIS',lm+6,y+7);
   doc.setFontSize(18);doc.setFont('helvetica','bold');
   doc.setTextColor(...acR);
   doc.text(d.final_prediction.toUpperCase(),lm+6,y+19);
-
   const riskColor=risk==='High Risk'?[220,38,38]:risk==='Moderate Risk'?[217,119,6]:[22,163,74];
   fill(...riskColor);
   doc.roundedRect(lm+6,y+21,doc.getTextWidth(riskShort)+6,5.5,1,1,'F');
   doc.setFont('helvetica','bold');doc.setFontSize(6.5);
   doc.setTextColor(255,255,255);
   doc.text(riskShort,lm+9,y+25.2);
-
   doc.setFontSize(7.5);doc.setFont('helvetica','normal');rgb(100,116,139);
   doc.text('Multimodal Fusion Pipeline',lm+6,y+30);
-
   doc.setFont('helvetica','bold');doc.setFontSize(7);rgb(100,116,139);
   doc.text('CONFIDENCE',W-rm-40,y+7,{align:'right'});
   doc.setFontSize(22);doc.setTextColor(...acR);
   doc.text(d.final_confidence+'%',W-rm-6,y+22,{align:'right'});
   y+=38;
-
-  // ─── SECTION: individual models ───
   function sectionHead(txt){
     doc.setFont('helvetica','bold');doc.setFontSize(7);rgb(59,130,246);
     doc.text(txt,lm,y);
     draw(59,130,246);doc.setLineWidth(.3);
     doc.line(lm+doc.getTextWidth(txt)+2,y-1,W-rm,y-1);
-    doc.setLineWidth(.2);
-    y+=5;
+    doc.setLineWidth(.2);y+=5;
   }
-
   sectionHead('INDIVIDUAL MODEL RESULTS');
-
   const colW=cw/3-2;
   const models=[
     {nm:'CNN — ResNet18',pred:d.cnn.prediction,conf:d.cnn.confidence,sub:'Visual analysis'},
     {nm:'BERT — Clinical NLP',pred:d.bert.prediction==='No Clinical Note'?'No Input':d.bert.prediction,conf:d.bert.prediction==='No Clinical Note'?0:d.bert.confidence,sub:'Text processing'},
     {nm:'Fusion Model',pred:d.fusion.prediction,conf:d.fusion.confidence,sub:'Multimodal integration'},
   ];
-
   models.forEach((m,i)=>{
     const mx=lm+i*(colW+3);
     const isc=m.pred==='Cancer';
     const isna=m.pred==='No Input';
     const cr=isna?[148,163,184]:(isc?[220,38,38]:[22,163,74]);
-
     fill(248,250,252);doc.roundedRect(mx,y,colW,30,1.5,1.5,'F');
     draw(209,213,219);doc.roundedRect(mx,y,colW,30,1.5,1.5,'D');
-
     doc.setFont('helvetica','bold');doc.setFontSize(6.5);rgb(100,116,139);
     doc.text(m.nm,mx+4,y+6);
-
     const tagX=mx+colW-4;
-    if(!isna){
-      fill(...cr);
-      doc.roundedRect(tagX-doc.getTextWidth(m.pred)-2,y+2.5,doc.getTextWidth(m.pred)+4,5,1,1,'F');
-    }
+    if(!isna){fill(...cr);doc.roundedRect(tagX-doc.getTextWidth(m.pred)-2,y+2.5,doc.getTextWidth(m.pred)+4,5,1,1,'F');}
     doc.setFont('helvetica','bold');doc.setFontSize(6);
     doc.setTextColor(isna?100:255,isna?116:255,isna?139:255);
     doc.text(isna?'N/A':m.pred,tagX,y+6.5,{align:'right'});
-
     doc.setFont('helvetica','bold');doc.setFontSize(10);
     doc.setTextColor(...cr);
     doc.text(m.pred,mx+4,y+16);
-
     fill(226,232,240);doc.rect(mx+4,y+19,colW-8,2.5,'F');
-    if(!isna&&m.conf>0){
-      fill(...cr);doc.rect(mx+4,y+19,(colW-8)*(m.conf/100),2.5,'F');
-    }
-
+    if(!isna&&m.conf>0){fill(...cr);doc.rect(mx+4,y+19,(colW-8)*(m.conf/100),2.5,'F');}
     doc.setFont('helvetica','normal');doc.setFontSize(6.5);rgb(100,116,139);
     doc.text(isna?'No input provided':m.conf+'% confidence',mx+4,y+26);
     doc.text(m.sub,mx+4,y+30.5);
   });
   y+=37;
-
-  // ─── SECTION: clinical notes ───
   if(note){
     sectionHead('CLINICAL NOTES PROVIDED');
     fill(248,250,252);doc.roundedRect(lm,y,cw,20,1.5,1.5,'F');
@@ -791,13 +752,10 @@ async function dlPDF(){
     doc.text(lines.slice(0,4),lm+5,y+7);
     y+=25;
   }
-
-  // ─── SECTION: interpretation ───
   sectionHead('CLINICAL INTERPRETATION');
   const interp=ic
     ?'The DeepOncoVision AI system flagged this case as likely MALIGNANT with '+d.final_confidence+'% confidence ('+riskShort+'). The CNN model detected abnormal visual patterns in the medical image. Clinical validation is strongly recommended. Confirmatory histopathology or radiology should be performed.'
     :'The DeepOncoVision AI system classified this case as NORMAL / BENIGN with '+d.final_confidence+'% confidence ('+riskShort+'). No significant malignant patterns were detected in the medical image. Routine follow-up as per clinical protocol is recommended.';
-
   fill(ic?254:240,ic?242:253,ic?242:244);
   doc.roundedRect(lm,y,cw,16,1.5,1.5,'F');
   draw(...acR);doc.roundedRect(lm,y,cw,16,1.5,1.5,'D');
@@ -806,14 +764,11 @@ async function dlPDF(){
   const ilines=doc.splitTextToSize(interp,cw-10);
   doc.text(ilines.slice(0,4),lm+6,y+6);
   y+=21;
-
-  // ─── FOOTER ───
   fill(15,23,42);doc.rect(0,H-14,W,14,'F');
   doc.setFont('helvetica','normal');doc.setFontSize(7);rgb(148,163,184);
   doc.text('DeepOncoVision AI  ·  '+ts+'  ·  '+rid,W/2,H-7.5,{align:'center'});
   doc.setFont('helvetica','bold');rgb(59,130,246);
   doc.text('RESEARCH GRADE — NOT FOR CLINICAL USE',W/2,H-3,{align:'center'});
-
   doc.save('DeepOncoVision_Report_'+rid+'.pdf');
 }
 
