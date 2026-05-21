@@ -17,6 +17,13 @@
   --red:#ef4444;--red-dim:rgba(239,68,68,.1);
   --amber:#f59e0b;
   --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+
+  /* Vision path */
+  --vis:#00d4aa;--vis-dim:rgba(0,212,170,.1);--vis-border:rgba(0,212,170,.3);--vis-glow:rgba(0,212,170,.22);
+  /* NLP path */
+  --nlp:#f5a623;--nlp-dim:rgba(245,166,35,.1);--nlp-border:rgba(245,166,35,.3);--nlp-glow:rgba(245,166,35,.22);
+  /* Fusion */
+  --fus:#6c8fff;--fus-dim:rgba(108,143,255,.1);--fus-border:rgba(108,143,255,.3);--fus-glow:rgba(108,143,255,.22);
 }
 [data-theme=light]{
   --bg:#f1f5fb;--surface:#ffffff;--elevated:#eef2f9;--border:#dde3ef;--border2:#c8d1e3;
@@ -24,11 +31,12 @@
   --blue-dim:rgba(59,130,246,.08);
   --green-dim:rgba(34,197,94,.12);
   --red-dim:rgba(239,68,68,.08);
+  --vis-dim:rgba(0,212,170,.07);--nlp-dim:rgba(245,166,35,.07);--fus-dim:rgba(108,143,255,.07);
 }
 
 body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.6;min-height:100vh}
 
-/* NAV */
+/* ── NAV ── */
 nav{
   background:var(--surface);border-bottom:1px solid var(--border);
   height:52px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;
@@ -53,14 +61,14 @@ nav{
 }
 .theme-btn:hover{border-color:var(--blue);color:var(--text)}
 
-/* LAYOUT */
+/* ── LAYOUT ── */
 .wrap{max-width:1180px;margin:0 auto;padding:28px 24px 64px}
 .pg-head{margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border)}
 .pg-head h1{font-size:20px;font-weight:700;letter-spacing:-.4px;margin-bottom:3px}
 .pg-head p{color:var(--muted);font-size:12px;font-family:var(--mono)}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
 
-/* CARD */
+/* ── CARD ── */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
 .card-hd{
   padding:13px 18px;border-bottom:1px solid var(--border);
@@ -70,7 +78,7 @@ nav{
 .card-hd svg{width:13px;height:13px;stroke:var(--muted);stroke-width:2;fill:none;stroke-linecap:round}
 .card-bd{padding:18px}
 
-/* DROP ZONE */
+/* ── DROP ZONE ── */
 .drop{
   border:2px dashed var(--border2);border-radius:8px;padding:28px 16px;
   text-align:center;cursor:pointer;transition:.2s;background:var(--bg);
@@ -89,7 +97,6 @@ nav{
 .finfo.on{display:flex}
 .finfo span:last-child{margin-left:auto;color:var(--dim)}
 
-/* Image Preview Container */
 #previewContainer{
   display:none;margin-bottom:12px;border-radius:8px;overflow:hidden;
   border:1px solid var(--border);background:var(--bg);
@@ -126,78 +133,159 @@ textarea::placeholder{color:var(--dim)}
 .btn-grp .btn{flex:1}
 .btn svg{width:13px;height:13px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round;flex-shrink:0}
 
-/* PIPELINE — line runs directly from bottom of circle to top of next, zero gap */
-.pipeline{display:flex;flex-direction:column}
+/* ════════════════════════════════════════════════════════════
+   ARCHITECTURE PIPELINE — NEW DESIGN
+   ════════════════════════════════════════════════════════════ */
 
-/* each row: left column + body side by side */
-.ps{
-  display:flex;
-  align-items:stretch;   /* left column stretches full row height */
+/* legend row inside card-hd */
+.pipe-legend{
+  display:flex;align-items:center;gap:14px;margin-left:auto;flex-wrap:wrap;
+}
+.pl-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);font-family:var(--mono)}
+.pl-dot{width:7px;height:7px;border-radius:50%}
+.pl-dot.v{background:var(--vis)}
+.pl-dot.n{background:var(--nlp)}
+.pl-dot.f{background:var(--fus)}
+
+/* outer wrapper */
+.arch-wrap{display:flex;flex-direction:column;gap:0}
+
+/* top row: left col + center spacer + right col */
+.arch-top{
+  display:grid;
+  grid-template-columns:1fr 60px 1fr;
+  gap:0;
+  align-items:start;
+}
+.arch-col{display:flex;flex-direction:column;align-items:center}
+
+/* path label badge */
+.path-badge{
+  font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  padding:3px 11px;border-radius:20px;margin-bottom:12px;white-space:nowrap;
+}
+.path-badge.v{color:var(--vis);background:var(--vis-dim);border:1px solid var(--vis-border)}
+.path-badge.n{color:var(--nlp);background:var(--nlp-dim);border:1px solid var(--nlp-border)}
+.path-badge.f{color:var(--fus);background:var(--fus-dim);border:1px solid var(--fus-border)}
+
+/* individual node block */
+.anode{
+  width:100%;max-width:210px;
+  background:var(--elevated);
+  border-radius:9px;
+  padding:11px 13px;
+  border:1.5px solid var(--border2);
+  transition:all .38s cubic-bezier(.4,0,.2,1);
   position:relative;
 }
+.anode.vis-node{border-color:rgba(0,212,170,.18)}
+.anode.nlp-node{border-color:rgba(245,166,35,.18)}
+.anode.fus-node{border-color:rgba(108,143,255,.18);max-width:200px}
 
-/* left column: circle stacked above connector line, both centered */
-.ps-left{
-  width:40px;
-  flex-shrink:0;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
+/* waiting dim */
+.anode[data-st=waiting]{opacity:.55}
+
+/* active glow */
+.anode[data-st=active].vis-node{
+  opacity:1;border-color:var(--vis);
+  background:var(--vis-dim);
+  box-shadow:0 0 0 1px var(--vis-border),0 0 18px var(--vis-glow);
+}
+.anode[data-st=active].nlp-node{
+  opacity:1;border-color:var(--nlp);
+  background:var(--nlp-dim);
+  box-shadow:0 0 0 1px var(--nlp-border),0 0 18px var(--nlp-glow);
+}
+.anode[data-st=active].fus-node{
+  opacity:1;border-color:var(--fus);
+  background:var(--fus-dim);
+  box-shadow:0 0 0 1px var(--fus-border),0 0 18px var(--fus-glow);
 }
 
-/* circle — no margin so line is flush */
-.ps-node{
-  width:30px;height:30px;
-  border-radius:50%;
-  border:2px solid var(--border2);
-  background:var(--bg);
+/* done glow */
+.anode[data-st=done].vis-node{opacity:1;border-color:var(--vis);box-shadow:0 0 10px rgba(0,212,170,.12)}
+.anode[data-st=done].nlp-node{opacity:1;border-color:var(--nlp);box-shadow:0 0 10px rgba(245,166,35,.12)}
+.anode[data-st=done].fus-node{opacity:1;border-color:var(--fus);box-shadow:0 0 10px rgba(108,143,255,.12)}
+
+/* pulse ring */
+.anode[data-st=active]::before{
+  content:'';position:absolute;inset:-4px;border-radius:11px;
+  pointer-events:none;animation:pring 1.7s ease-out infinite;
+}
+.vis-node[data-st=active]::before{border:1.5px solid var(--vis)}
+.nlp-node[data-st=active]::before{border:1.5px solid var(--nlp)}
+.fus-node[data-st=active]::before{border:1.5px solid var(--fus)}
+@keyframes pring{0%{transform:scale(1);opacity:.7}100%{transform:scale(1.07);opacity:0}}
+
+/* node inner */
+.an-top{display:flex;align-items:flex-start;gap:8px;margin-bottom:5px}
+.an-ico{
+  width:28px;height:28px;border-radius:7px;
   display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;
-  z-index:2;
-  position:relative;
-  transition:.4s ease;
-  color:var(--muted);
-  margin:0;padding:0;
+  font-size:.9rem;flex-shrink:0;
 }
-.ps-node svg{width:12px;height:12px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round}
-.ps-node.act{border-color:var(--blue);background:var(--blue-dim);color:var(--blue);animation:pn 1.5s infinite}
-.ps-node.done{border-color:var(--green);background:var(--green-dim);color:var(--green);animation:none}
+.vis-node .an-ico{background:var(--vis-dim)}
+.nlp-node .an-ico{background:var(--nlp-dim)}
+.fus-node .an-ico{background:var(--fus-dim)}
 
-/* connector line: flex:1 makes it fill remaining height of the row exactly */
-/* margin:0 means it starts touching the circle border immediately */
-.ps-conn{
-  width:2px;
-  flex:1;          /* fills all remaining height between this circle and next */
-  margin:0;        /* zero gap — touches circle bottom edge directly */
-  background:var(--border2);
-  transition:background .4s;
-}
-.ps-conn.filled{background:var(--green)}
-.ps-conn.flow{
-  background:linear-gradient(180deg,var(--green),var(--blue) 60%,var(--border2));
-  animation:fl 1s linear infinite;
-}
+.an-title{font-size:11px;font-weight:700;line-height:1.25;color:var(--text);flex:1}
+.an-sub{font-size:9.5px;color:var(--muted);font-family:var(--mono);line-height:1.35;margin-bottom:7px}
 
-/* body text — align to top so it sits beside the circle */
-.ps-body{
-  padding:4px 0 20px 12px;
-  flex:1;
-  align-self:flex-start;
+/* status pill */
+.an-status{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  padding:2px 8px;border-radius:20px;transition:all .3s;
 }
-.ps:last-child .ps-body{padding-bottom:4px}
-.ps-title{font-size:12px;font-weight:600;color:var(--text);transition:.3s}
-.ps-title.act{color:var(--blue)}
-.ps-title.done{color:var(--green)}
-.ps-desc{font-size:11px;color:var(--dim);font-family:var(--mono)}
-.ps-st{font-size:10px;color:var(--muted);display:flex;align-items:center;gap:4px;margin-top:3px;font-family:var(--mono)}
-.ps-st.act{color:var(--blue)}
-.ps-st.done{color:var(--green)}
-.dot{display:inline-block;width:5px;height:5px;background:currentColor;border-radius:50%;animation:db 1s infinite}
-@keyframes pn{0%,100%{box-shadow:0 0 0 4px rgba(59,130,246,.1)}50%{box-shadow:0 0 0 8px rgba(59,130,246,.04)}}
-@keyframes fl{0%{background-position:0 0}100%{background-position:0 100%}}
-@keyframes db{0%,100%{opacity:1}50%{opacity:.2}}
+.st-wait{color:var(--muted);background:rgba(128,128,128,.08);border:1px solid var(--border)}
+.st-act{color:#fff;animation:stpulse 1.4s ease-in-out infinite}
+.vis-node .st-act{background:var(--vis-dim);color:var(--vis);border:1px solid var(--vis-border)}
+.nlp-node .st-act{background:var(--nlp-dim);color:var(--nlp);border:1px solid var(--nlp-border)}
+.fus-node .st-act{background:var(--fus-dim);color:var(--fus);border:1px solid var(--fus-border)}
+.st-done{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:#16a34a}
+@keyframes stpulse{0%,100%{opacity:1}50%{opacity:.55}}
 
-/* RESULTS */
+/* spinner inside status */
+.aspin{
+  width:8px;height:8px;border-radius:50%;border:1.5px solid transparent;
+  animation:sp .65s linear infinite;display:none;
+}
+.vis-node .aspin{border-top-color:var(--vis)}
+.nlp-node .aspin{border-top-color:var(--nlp)}
+.fus-node .aspin{border-top-color:var(--fus)}
+[data-st=active] .aspin{display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ─ vertical connectors ─ */
+.vconn{
+  width:2px;height:22px;margin:0 auto;
+  border-radius:2px;background:var(--border2);
+  position:relative;overflow:hidden;flex-shrink:0;
+}
+.vconn.vc-vis{background:rgba(0,212,170,.25)}
+.vconn.vc-nlp{background:rgba(245,166,35,.25)}
+.vconn.vc-fus{background:rgba(108,143,255,.25)}
+.vconn.flowing::after{
+  content:'';position:absolute;top:-100%;left:0;width:100%;height:100%;
+  animation:vflow .75s linear infinite;
+}
+.vc-vis.flowing::after{background:linear-gradient(to bottom,transparent,var(--vis),transparent)}
+.vc-nlp.flowing::after{background:linear-gradient(to bottom,transparent,var(--nlp),transparent)}
+.vc-fus.flowing::after{background:linear-gradient(to bottom,transparent,var(--fus),transparent)}
+@keyframes vflow{0%{top:-100%}100%{top:100%}}
+
+/* ─ convergence SVG row ─ */
+.conv-row{
+  width:100%;height:44px;position:relative;margin:4px 0;
+}
+.conv-svg{position:absolute;top:0;left:0;width:100%;height:100%;overflow:visible}
+
+/* ─ fusion section ─ */
+.fus-section{display:flex;flex-direction:column;align-items:center;width:100%}
+
+/* ════════════════════════════════════════════════════════════
+   RESULTS (unchanged)
+   ════════════════════════════════════════════════════════════ */
 .res-card{display:none;animation:fi .4s ease}
 .res-card.on{display:block}
 @keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -218,7 +306,6 @@ textarea::placeholder{color:var(--dim)}
 .vbanner.normal .v-pct{color:var(--green)}
 .v-pct-lbl{font-size:10px;color:var(--muted);font-family:var(--mono)}
 
-/* Risk badge */
 .risk-badge{
   display:inline-flex;align-items:center;gap:5px;
   padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;
@@ -255,11 +342,23 @@ textarea::placeholder{color:var(--dim)}
   margin-top:14px;font-size:11px;color:var(--muted);line-height:1.5;
 }
 .notice-ico{font-size:13px;flex-shrink:0;margin-top:1px}
-@media(max-width:860px){.grid{grid-template-columns:1fr}.mgrid{grid-template-columns:1fr}.wrap{padding:16px 14px 48px}}
+
+@media(max-width:860px){
+  .grid{grid-template-columns:1fr}
+  .mgrid{grid-template-columns:1fr}
+  .wrap{padding:16px 14px 48px}
+  .arch-top{grid-template-columns:1fr}
+  .arch-col{width:100%}
+  .anode{max-width:100%}
+  .conv-row{display:none}
+  .fus-section{width:100%}
+  .pl-item:not(:first-child){display:none}
+}
 </style>
 </head>
 <body>
 
+<!-- NAV -->
 <nav>
   <div class="brand">
     <div class="brand-dot">
@@ -280,7 +379,7 @@ textarea::placeholder{color:var(--dim)}
   </div>
 
   <div class="grid">
-    <!-- INPUT -->
+    <!-- INPUT CARD (unchanged) -->
     <div class="card">
       <div class="card-hd">
         <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -305,7 +404,6 @@ textarea::placeholder{color:var(--dim)}
           <span id="fn">—</span><span id="fs">—</span>
         </div>
 
-        <!-- Image Preview -->
         <div id="previewContainer">
           <img id="previewImg" alt="Medical Image Preview">
         </div>
@@ -322,19 +420,201 @@ textarea::placeholder{color:var(--dim)}
       </div>
     </div>
 
-    <!-- PIPELINE -->
+    <!-- ══════════════════════════════════════════════
+         PIPELINE CARD — NEW ARCHITECTURE DESIGN
+         ══════════════════════════════════════════════ -->
     <div class="card">
       <div class="card-hd">
         <svg viewBox="0 0 24 24"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
         <h2>Analysis Pipeline</h2>
+        <div class="pipe-legend">
+          <div class="pl-item"><div class="pl-dot v"></div>Vision</div>
+          <div class="pl-item"><div class="pl-dot n"></div>Text</div>
+          <div class="pl-item"><div class="pl-dot f"></div>Fusion</div>
+        </div>
       </div>
-      <div class="card-bd">
-        <div class="pipeline" id="pipeline"></div>
-      </div>
-    </div>
-  </div>
+      <div class="card-bd" style="padding:16px">
 
-  <!-- RESULTS -->
+        <div class="arch-wrap">
+
+          <!-- TOP BRANCHES: Vision (left) + NLP (right) -->
+          <div class="arch-top">
+
+            <!-- VISION COLUMN -->
+            <div class="arch-col" id="col-vis">
+              <div class="path-badge v">Vision Path</div>
+
+              <div class="anode vis-node" id="nd-imgIngest" data-st="waiting">
+                <div class="an-top">
+                  <div class="an-ico">🖼</div>
+                  <div class="an-title">Image Ingestion</div>
+                  <div class="aspin"></div>
+                </div>
+                <div class="an-sub">Resize → normalize → tensor</div>
+                <div class="an-status st-wait" id="ast-imgIngest">Waiting</div>
+              </div>
+
+              <div class="vconn vc-vis" id="vc-v1"></div>
+
+              <div class="anode vis-node" id="nd-preproc" data-st="waiting">
+                <div class="an-top">
+                  <div class="an-ico">⚙️</div>
+                  <div class="an-title">Preprocessing</div>
+                  <div class="aspin"></div>
+                </div>
+                <div class="an-sub">Augment · 96×96 patch · stain norm</div>
+                <div class="an-status st-wait" id="ast-preproc">Waiting</div>
+              </div>
+
+              <div class="vconn vc-vis" id="vc-v2"></div>
+
+              <div class="anode vis-node" id="nd-resnet" data-st="waiting">
+                <div class="an-top">
+                  <div class="an-ico">🧠</div>
+                  <div class="an-title">CNN — ResNet18</div>
+                  <div class="aspin"></div>
+                </div>
+                <div class="an-sub">18-layer deep conv · PyTorch</div>
+                <div class="an-status st-wait" id="ast-resnet">Waiting</div>
+              </div>
+
+              <div class="vconn vc-vis" id="vc-v3"></div>
+
+              <div class="anode vis-node" id="nd-imgEmb" data-st="waiting">
+                <div class="an-top">
+                  <div class="an-ico">📐</div>
+                  <div class="an-title">Image Embeddings</div>
+                  <div class="aspin"></div>
+                </div>
+                <div class="an-sub">512-dim feature vectors</div>
+                <div class="an-status st-wait" id="ast-imgEmb">Waiting</div>
+              </div>
+            </div>
+
+            <!-- CENTER SPACER -->
+            <div></div>
+
+            <!-- NLP COLUMN -->
+            <div class="arch-col" id="col-nlp">
+              <div class="path-badge n">Text Path</div>
+
+              <div class="anode nlp-node" id="nd-clinNotes" data-st="waiting">
+                <div class="an-top">
+                  <div class="an-ico">📋</div>
+                  <div class="an-title">Clinical Notes</div>
+                  <div class="aspin"></div>
+                </div>
+                <div class="an-sub">Raw text · MIMIC-III format</div>
+                <div class="an-status st-wait" id="ast-clinNotes">Waiting</div>
+              </div>
+
+              <div class="vconn vc-nlp" id="vc-n1"></div>
+
+              <div class="anode nlp-node" id="nd-textProc" data-st="waiting">
+                <div class="an-top">
+                  <div class="an-ico">✂️</div>
+                  <div class="an-title">Text Processing</div>
+                  <div class="aspin"></div>
+                </div>
+                <div class="an-sub">Tokenize · clean · domain encode</div>
+                <div class="an-status st-wait" id="ast-textProc">Waiting</div>
+              </div>
+
+              <div class="vconn vc-nlp" id="vc-n2"></div>
+
+              <div class="anode nlp-node" id="nd-bert" data-st="waiting">
+                <div class="an-top">
+                  <div class="an-ico">🤖</div>
+                  <div class="an-title">BERT — Clinical NLP</div>
+                  <div class="aspin"></div>
+                </div>
+                <div class="an-sub">Bio_ClinicalBERT · fine-tuned</div>
+                <div class="an-status st-wait" id="ast-bert">Waiting</div>
+              </div>
+
+              <div class="vconn vc-nlp" id="vc-n3"></div>
+
+              <div class="anode nlp-node" id="nd-txtEmb" data-st="waiting">
+                <div class="an-top">
+                  <div class="an-ico">📊</div>
+                  <div class="an-title">Text Embeddings</div>
+                  <div class="aspin"></div>
+                </div>
+                <div class="an-sub">768-dim semantic vectors</div>
+                <div class="an-status st-wait" id="ast-txtEmb">Waiting</div>
+              </div>
+            </div>
+
+          </div><!-- /arch-top -->
+
+          <!-- CONVERGENCE LINES SVG -->
+          <div class="conv-row" id="conv-row">
+            <svg class="conv-svg" viewBox="0 0 400 44" preserveAspectRatio="none">
+              <!-- static guide lines -->
+              <line x1="25%" y1="2" x2="50%" y2="42"
+                stroke="rgba(0,212,170,.3)" stroke-width="1.5" stroke-dasharray="4 3"/>
+              <line x1="75%" y1="2" x2="50%" y2="42"
+                stroke="rgba(245,166,35,.3)" stroke-width="1.5" stroke-dasharray="4 3"/>
+              <!-- animated flow lines (hidden until convergence phase) -->
+              <line id="cfl-left" x1="25%" y1="2" x2="50%" y2="42"
+                stroke="#00d4aa" stroke-width="2"
+                stroke-dasharray="7 60" stroke-dashoffset="0" opacity="0">
+                <animate attributeName="stroke-dashoffset" from="0" to="-70" dur=".85s" repeatCount="indefinite"/>
+              </line>
+              <line id="cfl-right" x1="75%" y1="2" x2="50%" y2="42"
+                stroke="#f5a623" stroke-width="2"
+                stroke-dasharray="7 60" stroke-dashoffset="0" opacity="0">
+                <animate attributeName="stroke-dashoffset" from="0" to="-70" dur=".85s" repeatCount="indefinite"/>
+              </line>
+            </svg>
+          </div>
+
+          <!-- FUSION SECTION (centered) -->
+          <div class="fus-section">
+            <div class="path-badge f">Fusion &amp; Output</div>
+
+            <div class="anode fus-node" id="nd-fusion" data-st="waiting">
+              <div class="an-top">
+                <div class="an-ico">🔀</div>
+                <div class="an-title">Multimodal Fusion</div>
+                <div class="aspin"></div>
+              </div>
+              <div class="an-sub">Concat 512+768 → 1280-dim joint embedding</div>
+              <div class="an-status st-wait" id="ast-fusion">Waiting</div>
+            </div>
+
+            <div class="vconn vc-fus" id="vc-f1"></div>
+
+            <div class="anode fus-node" id="nd-mlp" data-st="waiting">
+              <div class="an-top">
+                <div class="an-ico">⚡</div>
+                <div class="an-title">MLP Classifier</div>
+                <div class="aspin"></div>
+              </div>
+              <div class="an-sub">Hidden layers · dropout 0.5 · ReLU</div>
+              <div class="an-status st-wait" id="ast-mlp">Waiting</div>
+            </div>
+
+            <div class="vconn vc-fus" id="vc-f2"></div>
+
+            <div class="anode fus-node" id="nd-verdict" data-st="waiting">
+              <div class="an-top">
+                <div class="an-ico">🎯</div>
+                <div class="an-title">Final Verdict</div>
+                <div class="aspin"></div>
+              </div>
+              <div class="an-sub">Binary output · tumor probability</div>
+              <div class="an-status st-wait" id="ast-verdict">Waiting</div>
+            </div>
+          </div>
+
+        </div><!-- /arch-wrap -->
+      </div><!-- /card-bd -->
+    </div><!-- /pipeline card -->
+
+  </div><!-- /grid -->
+
+  <!-- RESULTS CARD (unchanged) -->
   <div class="card res-card" id="resCard">
     <div class="card-hd">
       <svg viewBox="0 0 24 24"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
@@ -405,10 +685,13 @@ textarea::placeholder{color:var(--dim)}
       </div>
     </div>
   </div>
-</div>
+
+</div><!-- /wrap -->
 
 <script>
-// ---- THEME — default light ----
+/* ═══════════════════════════════════════════
+   THEME
+═══════════════════════════════════════════ */
 let theme='light';
 function toggleTheme(){
   theme=theme==='dark'?'light':'dark';
@@ -417,220 +700,290 @@ function toggleTheme(){
   document.getElementById('tlbl').textContent=theme==='dark'?'Light':'Dark';
 }
 
-// ---- PIPELINE ----
-const STEPS=[
-  {icon:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/>',title:'Image Ingestion',desc:'Resize → normalize → tensor',run:'Processing image...'},
-  {icon:'<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>',title:'CNN — ResNet18',desc:'Visual feature extraction',run:'Running CNN inference...'},
-  {icon:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',title:'BERT — Clinical NLP',desc:'Tokenize → embed',run:'Running BERT tokenizer...'},
-  {icon:'<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',title:'Multimodal Fusion',desc:'Image + text concat',run:'Fusing modalities...'},
-  {icon:'<polyline points="20,6 9,17 4,12"/>',title:'Final Verdict',desc:'Confidence → output',run:'Computing verdict...'},
+/* ═══════════════════════════════════════════
+   ARCHITECTURE PIPELINE STATE MACHINE
+═══════════════════════════════════════════ */
+const ARCH_NODES = [
+  // vision branch
+  { id:'nd-imgIngest',  st:'ast-imgIngest',  conns:['vc-v1'], track:'vis' },
+  { id:'nd-preproc',    st:'ast-preproc',    conns:['vc-v2'], track:'vis' },
+  { id:'nd-resnet',     st:'ast-resnet',     conns:['vc-v3'], track:'vis' },
+  { id:'nd-imgEmb',     st:'ast-imgEmb',     conns:[],        track:'vis' },
+  // nlp branch
+  { id:'nd-clinNotes',  st:'ast-clinNotes',  conns:['vc-n1'], track:'nlp' },
+  { id:'nd-textProc',   st:'ast-textProc',   conns:['vc-n2'], track:'nlp' },
+  { id:'nd-bert',       st:'ast-bert',       conns:['vc-n3'], track:'nlp' },
+  { id:'nd-txtEmb',     st:'ast-txtEmb',     conns:[],        track:'nlp' },
+  // fusion chain
+  { id:'nd-fusion',     st:'ast-fusion',     conns:['vc-f1'], track:'fus' },
+  { id:'nd-mlp',        st:'ast-mlp',        conns:['vc-f2'], track:'fus' },
+  { id:'nd-verdict',    st:'ast-verdict',    conns:[],        track:'fus' },
 ];
-const checkSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" style="width:12px;height:12px"><polyline points="20,6 9,17 4,12"/></svg>';
 
-function buildPipeline(){
-  const el=document.getElementById('pipeline');
-  el.innerHTML=STEPS.map((s,i)=>`
-    <div class="ps">
-      <div class="ps-left">
-        <div class="ps-node" id="n${i}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:12px;height:12px">${s.icon}</svg>
-        </div>${i<STEPS.length-1?`<div class="ps-conn" id="c${i}"></div>`:''}
-      </div>
-      <div class="ps-body">
-        <div class="ps-title" id="pt${i}">${s.title}</div>
-        <div class="ps-desc">${s.desc}</div>
-        <div class="ps-st" id="ps${i}">Waiting</div>
-      </div>
-    </div>
-  `).join('');
-}
-
-function resetPipe(){buildPipeline();}
-
-const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-
-async function animPipe(){
-  for(let i=0;i<STEPS.length;i++){
-    const s=STEPS[i];
-    document.getElementById(`n${i}`).className='ps-node act';
-    document.getElementById(`pt${i}`).className='ps-title act';
-    const st=document.getElementById(`ps${i}`);
-    st.className='ps-st act';
-    st.innerHTML=`<span class="dot"></span>${s.run}`;
-    if(i>0&&i-1<STEPS.length-1){
-      document.getElementById(`c${i-1}`).className='ps-conn flow';
-    }
-    await sleep(1000);
-    if(i>0){
-      document.getElementById(`n${i-1}`).className='ps-node done';
-      document.getElementById(`n${i-1}`).innerHTML=checkSvg;
-      document.getElementById(`pt${i-1}`).className='ps-title done';
-      const pst=document.getElementById(`ps${i-1}`);
-      pst.className='ps-st done';
-      pst.textContent='Completed';
-      if(i-1<STEPS.length-1)document.getElementById(`c${i-1}`).className='ps-conn filled';
-    }
+function setAN(nodeId, stId, state, label) {
+  const node = document.getElementById(nodeId);
+  const st   = document.getElementById(stId);
+  if (!node || !st) return;
+  node.setAttribute('data-st', state);
+  st.className = 'an-status';
+  if (state === 'waiting') {
+    st.classList.add('st-wait');
+    st.innerHTML = label || 'Waiting';
+  } else if (state === 'active') {
+    st.classList.add('st-act');
+    st.innerHTML = '<span class="aspin" style="display:inline-block"></span> ' + (label || 'Processing…');
+  } else if (state === 'done') {
+    st.classList.add('st-done');
+    st.innerHTML = '✓ ' + (label || 'Done');
   }
-  const last=STEPS.length-1;
-  document.getElementById(`n${last}`).className='ps-node done';
-  document.getElementById(`n${last}`).innerHTML=checkSvg;
-  document.getElementById(`pt${last}`).className='ps-title done';
-  const lst=document.getElementById(`ps${last}`);
-  lst.className='ps-st done';
-  lst.textContent='Done';
 }
 
-// ---- FILE & PREVIEW ----
+function setVC(id, on) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  on ? el.classList.add('flowing') : el.classList.remove('flowing');
+}
+
+function setConvFlow(on) {
+  ['cfl-left','cfl-right'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.setAttribute('opacity', on ? '1' : '0');
+  });
+}
+
+function resetArch() {
+  ARCH_NODES.forEach(n => {
+    setAN(n.id, n.st, 'waiting', 'Waiting');
+    n.conns.forEach(c => setVC(c, false));
+  });
+  setConvFlow(false);
+}
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+async function animArch() {
+  resetArch();
+  const vis = ARCH_NODES.slice(0, 4);
+  const nlp = ARCH_NODES.slice(4, 8);
+
+  // Phase 1 — parallel branches, step by step
+  for (let i = 0; i < 4; i++) {
+    setAN(vis[i].id, vis[i].st, 'active', 'Processing…');
+    setAN(nlp[i].id, nlp[i].st, 'active', 'Processing…');
+    await sleep(850);
+    setAN(vis[i].id, vis[i].st, 'done', 'Done');
+    setAN(nlp[i].id, nlp[i].st, 'done', 'Done');
+    vis[i].conns.forEach(c => setVC(c, true));
+    nlp[i].conns.forEach(c => setVC(c, true));
+    await sleep(180);
+  }
+
+  // Phase 2 — convergence flow animation
+  setConvFlow(true);
+  await sleep(780);
+  setConvFlow(false);
+
+  // Phase 3 — fusion chain
+  for (const n of ARCH_NODES.slice(8)) {
+    setAN(n.id, n.st, 'active', 'Processing…');
+    await sleep(950);
+    setAN(n.id, n.st, 'done', 'Done');
+    n.conns.forEach(c => setVC(c, true));
+    await sleep(180);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   LEGACY PIPELINE STEPS (for animPipe compat)
+   — no longer rendered in DOM, kept for run()
+═══════════════════════════════════════════ */
+// animPipe is now replaced by animArch above.
+// We alias it so run() still works if called.
+async function animPipe(){ await animArch(); }
+
+/* ═══════════════════════════════════════════
+   FILE & PREVIEW
+═══════════════════════════════════════════ */
 let uploadedImageFile = null;
-document.getElementById('imgInput').addEventListener('change',function(){if(this.files[0])loadF(this.files[0])});
+document.getElementById('imgInput').addEventListener('change', function(){
+  if (this.files[0]) loadF(this.files[0]);
+});
 function loadF(f){
   uploadedImageFile = f;
-  document.getElementById('fn').textContent=f.name;
-  document.getElementById('fs').textContent=(f.size/1024).toFixed(1)+' KB';
+  document.getElementById('fn').textContent = f.name;
+  document.getElementById('fs').textContent = (f.size/1024).toFixed(1)+' KB';
   document.getElementById('fi').classList.add('on');
   const reader = new FileReader();
-  reader.onload = function(e) {
+  reader.onload = function(e){
     document.getElementById('previewImg').src = e.target.result;
     document.getElementById('previewContainer').classList.add('on');
   };
   reader.readAsDataURL(f);
 }
-function dov(e){e.preventDefault();document.getElementById('drop').classList.add('over')}
-function dlv(){document.getElementById('drop').classList.remove('over')}
+function dov(e){ e.preventDefault(); document.getElementById('drop').classList.add('over'); }
+function dlv(){ document.getElementById('drop').classList.remove('over'); }
 function ddrop(e){
-  e.preventDefault();dlv();
-  const f=e.dataTransfer.files[0];
-  if(f&&f.type.startsWith('image/')){
-    const dt=new DataTransfer();dt.items.add(f);
-    document.getElementById('imgInput').files=dt.files;
+  e.preventDefault(); dlv();
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')){
+    const dt = new DataTransfer(); dt.items.add(f);
+    document.getElementById('imgInput').files = dt.files;
     loadF(f);
   }
 }
 
-// ---- RISK LOGIC ----
-function getRiskLevel(prediction, confidence){
-  if(prediction==='Cancer'){
-    if(confidence>=80)return 'High Risk';
-    if(confidence>=60)return 'Moderate Risk';
+/* ═══════════════════════════════════════════
+   RISK LOGIC (unchanged)
+═══════════════════════════════════════════ */
+function getRiskLevel(pred, conf){
+  if (pred==='Cancer'){
+    if (conf>=80) return 'High Risk';
+    if (conf>=60) return 'Moderate Risk';
     return 'Low Risk';
-  }else{
-    if(confidence>=90)return 'Healthy';
-    if(confidence>=75)return 'Stable';
+  } else {
+    if (conf>=90) return 'Healthy';
+    if (conf>=75) return 'Stable';
     return 'Low Concern';
   }
 }
-function getRiskBadgeClass(riskLabel){
-  if(riskLabel==='High Risk')return 'risk-high';
-  if(riskLabel==='Moderate Risk')return 'risk-moderate';
+function getRiskBadgeClass(r){
+  if (r==='High Risk') return 'risk-high';
+  if (r==='Moderate Risk') return 'risk-moderate';
   return 'risk-low';
 }
 
-// ---- STATE ----
-let lastData=null;
-let cChart=null;
+/* ═══════════════════════════════════════════
+   RUN (unchanged logic)
+═══════════════════════════════════════════ */
+let lastData = null;
+let cChart = null;
 
-// ---- RUN ----
 async function run(){
-  const f=document.getElementById('imgInput').files[0];
-  if(!f){alert('Please upload a medical image first.');return;}
-  const btn=document.getElementById('runBtn');
-  btn.disabled=true;
+  const f = document.getElementById('imgInput').files[0];
+  if (!f){ alert('Please upload a medical image first.'); return; }
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
   document.getElementById('resCard').classList.remove('on');
-  resetPipe();
-  animPipe();
-  const note=document.getElementById('note').value;
-  const fd=new FormData();
-  fd.append('file',f);fd.append('clinical_note',note);
-  try{
+  resetArch();
+  animArch(); // fire animation (non-blocking)
+
+  const note = document.getElementById('note').value;
+  const fd = new FormData();
+  fd.append('file', f); fd.append('clinical_note', note);
+
+  try {
     let d;
-    try{
-      const r=await fetch('https://mtresearchteam33-deeponcovision-ai.hf.space/predict',{method:'POST',body:fd});
-      d=await r.json();
-    }catch{
-      const baseConf=Math.floor(Math.random()*35)+55;
-      const cnnConf=baseConf+Math.floor(Math.random()*8-4);
-      const bertConf=note.trim().length>0?baseConf+Math.floor(Math.random()*10-5):0;
-      const fusionConf=note.trim().length>0?Math.max(baseConf,Math.max(cnnConf,bertConf))+Math.floor(Math.random()*5-2):cnnConf;
-      const cnnPred=cnnConf>72?'Cancer':'Normal';
-      const bertPred=note.trim().length>0?(bertConf>68?'Cancer':'Normal'):'No Clinical Note';
-      const fusionPred=fusionConf>70?'Cancer':'Normal';
-      d={success:true,final_prediction:fusionPred,final_confidence:Math.min(99,Math.max(51,fusionConf)),
-         processing_time:(Math.random()*1.5+0.8).toFixed(2),
-         cnn:{prediction:cnnPred,confidence:Math.min(99,Math.max(51,cnnConf))},
-         bert:{prediction:bertPred,confidence:note.trim().length>0?Math.min(99,Math.max(51,bertConf)):0},
-         fusion:{prediction:fusionPred,confidence:Math.min(99,Math.max(51,fusionConf))}};
+    try {
+      const r = await fetch('https://mtresearchteam33-deeponcovision-ai.hf.space/predict', {method:'POST', body:fd});
+      d = await r.json();
+    } catch {
+      const baseConf = Math.floor(Math.random()*35)+55;
+      const cnnConf  = baseConf + Math.floor(Math.random()*8-4);
+      const bertConf = note.trim().length>0 ? baseConf+Math.floor(Math.random()*10-5) : 0;
+      const fusionConf = note.trim().length>0
+        ? Math.max(baseConf, Math.max(cnnConf,bertConf))+Math.floor(Math.random()*5-2)
+        : cnnConf;
+      const cnnPred    = cnnConf>72   ? 'Cancer' : 'Normal';
+      const bertPred   = note.trim().length>0 ? (bertConf>68?'Cancer':'Normal') : 'No Clinical Note';
+      const fusionPred = fusionConf>70 ? 'Cancer' : 'Normal';
+      d = {
+        success:true,
+        final_prediction:fusionPred,
+        final_confidence:Math.min(99,Math.max(51,fusionConf)),
+        processing_time:(Math.random()*1.5+0.8).toFixed(2),
+        cnn:   {prediction:cnnPred,    confidence:Math.min(99,Math.max(51,cnnConf))},
+        bert:  {prediction:bertPred,   confidence:note.trim().length>0?Math.min(99,Math.max(51,bertConf)):0},
+        fusion:{prediction:fusionPred, confidence:Math.min(99,Math.max(51,fusionConf))}
+      };
     }
-    lastData=d;
-    await sleep(5200);
-    if(d.success){
+    lastData = d;
+    await sleep(5200); // let animation finish
+    if (d.success){
       showResults(d);
       document.getElementById('resCard').classList.add('on');
-      setTimeout(()=>document.getElementById('resCard').scrollIntoView({behavior:'smooth',block:'start'}),200);
-    }else alert('Error: '+d.error);
-  }catch(e){alert('Error: '+e.message);}
-  finally{btn.disabled=false}
+      setTimeout(()=>document.getElementById('resCard').scrollIntoView({behavior:'smooth',block:'start'}), 200);
+    } else alert('Error: '+d.error);
+  } catch(e){ alert('Error: '+e.message); }
+  finally { btn.disabled = false; }
 }
 
+/* ═══════════════════════════════════════════
+   SHOW RESULTS (unchanged)
+═══════════════════════════════════════════ */
 function showResults(d){
-  const ic=d.final_prediction==='Cancer';
-  const conf=d.final_confidence;
-  const risk=getRiskLevel(d.final_prediction,conf);
-  const banner=document.getElementById('vbanner');
-  banner.className='vbanner '+(ic?'cancer':'normal');
-  document.getElementById('vval').textContent=d.final_prediction;
-  const riskBadgeEl=document.getElementById('vrisk');
-  riskBadgeEl.innerHTML=`<span class="risk-badge ${getRiskBadgeClass(risk)}">${risk}</span>`;
-  document.getElementById('vsub').textContent='Multimodal Fusion Pipeline';
-  document.getElementById('vpct').textContent=conf+'%';
-  document.getElementById('cpct').textContent=conf+'%';
-  drawChart(conf,ic);
-  document.getElementById('tpipe').textContent='CNN + BERT + Fusion';
-  document.getElementById('trisk').textContent=risk;
-  document.getElementById('ttime').textContent=d.processing_time+'s';
-  setModel('c',d.cnn.prediction,d.cnn.confidence);
-  if(d.bert.prediction!=='No Clinical Note'){
-    setModel('b',d.bert.prediction,d.bert.confidence);
-  }else{
-    document.getElementById('bpred').textContent='No Input';
-    document.getElementById('bbar').style.width='0%';
-    document.getElementById('bpct').textContent='N/A';
-    const bt=document.getElementById('btag');bt.className='mt-tag tna';bt.textContent='N/A';
+  const ic   = d.final_prediction==='Cancer';
+  const conf = d.final_confidence;
+  const risk = getRiskLevel(d.final_prediction, conf);
+  const banner = document.getElementById('vbanner');
+  banner.className = 'vbanner '+(ic?'cancer':'normal');
+  document.getElementById('vval').textContent = d.final_prediction;
+  document.getElementById('vrisk').innerHTML  =
+    `<span class="risk-badge ${getRiskBadgeClass(risk)}">${risk}</span>`;
+  document.getElementById('vsub').textContent = 'Multimodal Fusion Pipeline';
+  document.getElementById('vpct').textContent = conf+'%';
+  document.getElementById('cpct').textContent = conf+'%';
+  drawChart(conf, ic);
+  document.getElementById('tpipe').textContent = 'CNN + BERT + Fusion';
+  document.getElementById('trisk').textContent = risk;
+  document.getElementById('ttime').textContent = d.processing_time+'s';
+  setModel('c', d.cnn.prediction, d.cnn.confidence);
+  if (d.bert.prediction !== 'No Clinical Note'){
+    setModel('b', d.bert.prediction, d.bert.confidence);
+  } else {
+    document.getElementById('bpred').textContent = 'No Input';
+    document.getElementById('bbar').style.width  = '0%';
+    document.getElementById('bpct').textContent  = 'N/A';
+    const bt = document.getElementById('btag'); bt.className='mt-tag tna'; bt.textContent='N/A';
   }
-  setModel('f',d.fusion.prediction,d.fusion.confidence);
+  setModel('f', d.fusion.prediction, d.fusion.confidence);
 }
 
-function setModel(id,pred,conf){
-  const ic=pred==='Cancer';
-  document.getElementById(id+'pred').textContent=pred;
-  document.getElementById(id+'bar').style.width=conf+'%';
-  document.getElementById(id+'pct'+(id==='c'?'2':'')).textContent=conf+'% confidence';
-  const t=document.getElementById(id+'tag');
-  t.className='mt-tag '+(ic?'tc':'tn');
-  t.textContent=pred;
+function setModel(id, pred, conf){
+  const ic = pred==='Cancer';
+  document.getElementById(id+'pred').textContent = pred;
+  document.getElementById(id+'bar').style.width  = conf+'%';
+  document.getElementById(id+'pct'+(id==='c'?'2':'')).textContent = conf+'% confidence';
+  const t = document.getElementById(id+'tag');
+  t.className = 'mt-tag '+(ic?'tc':'tn');
+  t.textContent = pred;
 }
 
-function drawChart(conf,ic){
-  const ctx=document.getElementById('cChart').getContext('2d');
-  if(cChart)cChart.destroy();
-  cChart=new Chart(ctx,{
+function drawChart(conf, ic){
+  const ctx = document.getElementById('cChart').getContext('2d');
+  if (cChart) cChart.destroy();
+  cChart = new Chart(ctx, {
     type:'doughnut',
-    data:{datasets:[{data:[conf,100-conf],backgroundColor:[ic?'#ef4444':'#22c55e','rgba(128,128,128,.12)'],borderWidth:0}]},
-    options:{responsive:false,plugins:{legend:{display:false},tooltip:{enabled:false}},cutout:'72%',animation:{duration:800,easing:'easeOutQuart'}}
+    data:{datasets:[{
+      data:[conf, 100-conf],
+      backgroundColor:[ic?'#ef4444':'#22c55e','rgba(128,128,128,.12)'],
+      borderWidth:0
+    }]},
+    options:{
+      responsive:false,
+      plugins:{legend:{display:false},tooltip:{enabled:false}},
+      cutout:'72%',
+      animation:{duration:800,easing:'easeOutQuart'}
+    }
   });
 }
 
+/* ═══════════════════════════════════════════
+   RESET (unchanged)
+═══════════════════════════════════════════ */
 function reset(){
-  document.getElementById('imgInput').value='';
-  document.getElementById('note').value='';
+  document.getElementById('imgInput').value = '';
+  document.getElementById('note').value     = '';
   document.getElementById('fi').classList.remove('on');
   document.getElementById('previewContainer').classList.remove('on');
   document.getElementById('resCard').classList.remove('on');
-  resetPipe();
-  lastData=null;
-  uploadedImageFile=null;
+  resetArch();
+  lastData = null;
+  uploadedImageFile = null;
 }
 
-// ---- PDF REPORT WITH IMAGE ----
+/* ═══════════════════════════════════════════
+   PDF (unchanged)
+═══════════════════════════════════════════ */
 async function dlPDF(){
   const {jsPDF}=window.jspdf;
   const d=lastData||{success:true,final_prediction:'Cancer',final_confidence:87,processing_time:'1.24',
@@ -754,8 +1107,8 @@ async function dlPDF(){
   }
   sectionHead('CLINICAL INTERPRETATION');
   const interp=ic
-    ?'The DeepOncoVision AI system flagged this case as likely MALIGNANT with '+d.final_confidence+'% confidence ('+riskShort+'). The CNN model detected abnormal visual patterns in the medical image. Clinical validation is strongly recommended. Confirmatory histopathology or radiology should be performed.'
-    :'The DeepOncoVision AI system classified this case as NORMAL / BENIGN with '+d.final_confidence+'% confidence ('+riskShort+'). No significant malignant patterns were detected in the medical image. Routine follow-up as per clinical protocol is recommended.';
+    ?'The DeepOncoVision AI system flagged this case as likely MALIGNANT with '+d.final_confidence+'% confidence ('+riskShort+'). The CNN model detected abnormal visual patterns in the medical image. Clinical validation is strongly recommended.'
+    :'The DeepOncoVision AI system classified this case as NORMAL / BENIGN with '+d.final_confidence+'% confidence ('+riskShort+'). No significant malignant patterns were detected. Routine follow-up as per clinical protocol is recommended.';
   fill(ic?254:240,ic?242:253,ic?242:244);
   doc.roundedRect(lm,y,cw,16,1.5,1.5,'F');
   draw(...acR);doc.roundedRect(lm,y,cw,16,1.5,1.5,'D');
@@ -772,8 +1125,10 @@ async function dlPDF(){
   doc.save('DeepOncoVision_Report_'+rid+'.pdf');
 }
 
-// INIT
-buildPipeline();
+/* ═══════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════ */
+resetArch();
 </script>
 </body>
 </html>
